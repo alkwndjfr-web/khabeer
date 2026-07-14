@@ -1,0 +1,1 @@
+export default function sitemap(){ const b='https://khabeer.vercel.app'; return [{url:b,lastModified:new Date()},{url:b+'/services',lastModified:new Date()},{url:b+'/subscribe',lastModified:new Date()},{url:b+'/about',lastModified:new Date()},{url:b+'/trust',lastModified:new Date()},{url:b+'/request',lastModified:new Date()}]; }

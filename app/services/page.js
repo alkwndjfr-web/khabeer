@@ -1,0 +1,1 @@
+import Navbar from '../../components/Navbar'; import Footer from '../../components/Footer'; import ServicesGrid from '../../components/ServicesGrid'; export default function S(){return(<><Navbar/><div className='pt-6'><ServicesGrid/></div><Footer/></>)}

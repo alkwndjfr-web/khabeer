@@ -1,0 +1,9 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") directUrl = env("DIRECT_URL") }
+enum Role { customer technician admin }
+enum OrderStatus { pending assigned in_progress completed cancelled }
+model User { id String @id @default(cuid()) name String phone String? @unique email String? @unique password String role Role @default(customer) createdAt DateTime @default(now()) orders Order[] @relation("CustomerOrders") techOrders Order[] @relation("TechOrders") subscription Subscription? technicianProfile TechnicianProfile? }
+model Order { id String @id @default(cuid()) service String description String phone String address String? lat Float? lng Float? mapsUrl String? imageUrl String? status OrderStatus @default(pending) customerId String? customer User? @relation("CustomerOrders", fields:[customerId], references:[id]) technicianId String? technician User? @relation("TechOrders", fields:[technicianId], references:[id]) createdAt DateTime @default(now()) }
+model Subscription { id String @id @default(cuid()) plan String status String @default("active") expiresAt DateTime createdAt DateTime @default(now()) customerId String @unique customer User @relation(fields:[customerId], references:[id]) }
+model TechnicianProfile { id String @id @default(cuid()) userId String @unique user User @relation(fields:[userId], references:[id]) inviteCode String isAvailable Boolean @default(true) rating Float @default(5.0) earnings Int @default(0) completedJobs Int @default(0) lat Float? lng Float? }
+model WhatsappLog { id String @id @default(cuid()) to String message String type String createdAt DateTime @default(now()) }
