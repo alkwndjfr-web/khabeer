@@ -1,1 +1,24 @@
-'use client'; import {useSession} from 'next-auth/react'; import {useRouter} from 'next/navigation'; import {useEffect} from 'react'; import DashboardShell from '../../components/DashboardShell'; export default function L({children}){ const {data:s,status}=useSession(); const r=useRouter(); useEffect(()=>{if(status==='unauthenticated') r.push('/auth'); else if(status==='authenticated'&&s?.user?.role!=='admin') r.push('/auth')},[status,s,r]); if(status==='loading') return<div className='p-10 text-center'>جاري...</div>; if(!s||s.user.role!=='admin') return null; const side=[{label:'نظرة عامة',href:'/admin',icon:'📊'},{label:'الطلبات',href:'/admin#orders',icon:'🧾'},{label:'الفنيين',href:'/admin#techs',icon:'🧑‍🔧'},{label:'العملاء',href:'/admin#customers',icon:'👥'},{label:'سجل واتساب',href:'/admin#wa',icon:'💬'}]; return<DashboardShell title='لوحة الإدارة - خبير' subtitle='تحكم كامل' sidebar={side}>{children}</DashboardShell>}
+"use client";
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import DashboardShell from '../../components/DashboardShell';
+
+export default function AdminLayout({ children }) {
+  const sessionResult = useSession();
+  const session = sessionResult ? sessionResult.data : null;
+  const status = sessionResult ? sessionResult.status : "loading";
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  if (status === "loading") {
+    return <div className="p-6 text-center">جاري التحميل...</div>;
+  }
+
+  return <DashboardShell>{children}</DashboardShell>;
+}
