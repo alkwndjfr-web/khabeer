@@ -1,1 +1,12 @@
-import './globals.css'; export const metadata={title:'خبير | خدمات منزلية موثوقة في بغداد',description:'منصة خبير - فني معتمد يصلك خلال 90 دقيقة'}; export default function RootLayout({children}){return(<html lang='ar' dir='rtl'><body className='antialiased'>{children}</body></html>)}
+'use client';
+import { SessionProvider } from "next-auth/react";
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="ar" dir="rtl">
+      <body>
+        <SessionProvider>{children}</SessionProvider>
+      </body>
+    </html>
+  );
+}
