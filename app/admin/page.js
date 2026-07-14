@@ -1,1 +1,42 @@
-'use client'; import {useEffect,useState} from 'react'; import {buildWhatsAppLink} from '../../lib/whatsapp'; export default function P(){ const [orders,setOrders]=useState([]); const [filter,setFilter]=useState('all'); const [techs,setTechs]=useState([{id:'t1',name:'أحمد الفني',phone:'07701112233',rating:4.9,available:true},{id:'t2',name:'حيدر',phone:'07702223344',rating:4.8,available:true}]); const [newTech,setNewTech]=useState({name:'',phone:''}); const [waLog,setWaLog]=useState([]); useEffect(()=>{fetch('/api/orders').then(r=>r.json()).then(d=>setOrders(d.orders||[])).catch(()=>setOrders([]))},[]); const assign=(oid,tid)=>{ setOrders(o=>o.map(x=>x.id===oid?{...x,technicianId:tid,status:'assigned'}:x)); const t=techs.find(x=>x.id===tid); const o=orders.find(x=>x.id===oid); if(o&&t){ const m=`مرحبا ${o.phone}، تم إسناد الفني ${t.name} لطلبك ${o.service}`; const u=buildWhatsAppLink(m); setWaLog(l=>[{to:o.phone,message:m,at:new Date().toLocaleString('ar-IQ'),url:u},...l]); } }; const openWa=(ph,txt)=>{ const u=buildWhatsAppLink(txt); setWaLog(l=>[{to:ph,message:txt,at:new Date().toLocaleString('ar-IQ'),url:u},...l]); window.open(u,'_blank')}; const addTech=()=>{ if(!newTech.name||!newTech.phone) return; setTechs(t=>[...t,{id:'t'+Date.now(),name:newTech.name,phone:newTech.phone,rating:5,available:true}]); setNewTech({name:'',phone:''})}; const filtered=orders.filter(o=>filter==='all'?true:o.status===filter); return(<div className='space-y-6'><div className='grid grid-cols-2 md:grid-cols-4 gap-4'><div className='bg-white rounded-2xl p-5 border'><div className='text-xs text-slate-500'>طلبات اليوم</div><div className='text-2xl font-extrabold'>{orders.length||24}</div></div><div className='bg-white rounded-2xl p-5 border'><div className='text-xs'>فني متاح</div><div className='text-2xl font-extrabold'>{techs.filter(t=>t.available).length}</div></div><div className='bg-white rounded-2xl p-5 border'><div className='text-xs'>اشتراكات فعالة</div><div className='text-2xl font-extrabold'>156</div></div><div className='bg-white rounded-2xl p-5 border'><div className='text-xs'>رضا العملاء</div><div className='text-2xl font-extrabold'>4.9★</div></div></div><div className='bg-white rounded-2xl p-5 border'><div className='flex items-center justify-between'><h3 className='font-bold'>جدول الطلبات المباشر</h3><div className='flex gap-2 text-xs'><button onClick={()=>setFilter('all')} className={`px-3 py-1 rounded-full ${filter==='all'?'bg-[#0A1F44] text-white':'bg-slate-100'}`}>الكل</button><button onClick={()=>setFilter('pending')} className={`px-3 py-1 rounded-full ${filter==='pending'?'bg-[#0A1F44] text-white':'bg-slate-100'}`}>قيد الانتظار</button></div></div><div className='mt-4 overflow-auto'><table className='w-full text-sm'><thead className='text-slate-400'><tr><th className='text-right py-2'>الخدمة</th><th className='text-right'>العميل</th><th>الحالة</th><th>الموقع</th><th>إجراءات</th></tr></thead><tbody>{filtered.length===0&&<tr><td colSpan={5} className='py-6 text-center text-slate-400'>لا طلبات بعد، أنشئ طلب من /request</td></tr>}{filtered.map(o=><tr key={o.id} className='border-t'><td className='py-3 font-bold'>{o.service}</td><td>{o.phone}<div className='text-xs text-slate-400'>{o.address||''}</div></td><td><span className='text-xs bg-slate-100 px-2 py-1 rounded-full'>{o.status}</span></td><td>{o.mapsUrl?<a href={o.mapsUrl} target='_blank' className='text-[#16A34A] underline text-xs'>خرائط</a>:'-'}</td><td className='flex gap-1 py-2 flex-wrap'><select onChange={e=>assign(o.id,e.target.value)} className='text-xs border rounded-full px-2 py-1'><option>إسناد فني</option>{techs.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select><button onClick={()=>openWa(o.phone,`مرحبا، طلبك ${o.service} قيد المتابعة`)} className='text-xs bg-[#25D366] text-white px-3 py-1 rounded-full'>واتساب</button></td></tr>)}</tbody></table></div></div><div className='grid md:grid-cols-2 gap-4'><div className='bg-white rounded-2xl p-5 border'><h3 className='font-bold'>إدارة الفنيين</h3><div className='mt-3 flex gap-2'><input value={newTech.name} onChange={e=>setNewTech({...newTech,name:e.target.value})} placeholder='اسم الفني' className='flex-1 px-3 py-2 rounded-xl border text-sm'/><input value={newTech.phone} onChange={e=>setNewTech({...newTech,phone:e.target.value})} placeholder='0770...' className='flex-1 px-3 py-2 rounded-xl border text-sm'/><button onClick={addTech} className='px-4 py-2 bg-[#0A1F44] text-white rounded-xl text-sm'>إضافة</button></div><ul className='mt-4 space-y-2'>{techs.map(t=><li key={t.id} className='flex justify-between items-center text-sm border-b py-2'><span>{t.name} - {t.phone} - ⭐{t.rating}</span><button onClick={()=>setTechs(ts=>ts.filter(x=>x.id!==t.id))} className='text-red-500 text-xs'>حذف</button></li>)}</ul></div><div className='bg-white rounded-2xl p-5 border'><h3 className='font-bold'>سجل واتساب</h3><div className='mt-3 max-h-[260px] overflow-auto space-y-2'>{waLog.length===0&&<div className='text-xs text-slate-400'>لا رسائل بعد</div>}{waLog.map((l,i)=><div key={i} className='text-xs bg-[#F8FAFC] p-2 rounded-xl border'><div className='font-bold'>إلى:{l.to} - {l.at}</div><div className='mt-1'>{l.message}</div><a href={l.url} target='_blank' className='text-[#16A34A] underline'>فتح الرابط</a></div>)}</div></div></div></div>)}
+'use client';
+export const dynamic = 'force-dynamic';
+import { useEffect, useState } from 'react';
+import { buildWhatsAppLink } from '../../lib/whatsapp';
+
+export default function AdminPage() {
+  const [orders, setOrders] = useState([]);
+  const [filter, setFilter] = useState('all');
+
+  useEffect(() => {
+    fetch('/api/orders')
+      .then(res => res.json())
+      .then(data => setOrders(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
+  const filtered = filter === 'all' ? orders : orders.filter((o) => o.status === filter);
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">لوحة الإدارة</h1>
+      <select value={filter} onChange={e => setFilter(e.target.value)} className="border p-2 mb-4 rounded">
+        <option value="all">الكل</option>
+        <option value="pending">قيد الانتظار</option>
+        <option value="assigned">تم التعيين</option>
+        <option value="in_progress">قيد التنفيذ</option>
+        <option value="completed">مكتمل</option>
+        <option value="cancelled">ملغي</option>
+      </select>
+      <div className="grid gap-4">
+        {filtered.map((order) => (
+          <div key={order.id} className="border p-4 rounded">
+            <p><b>الخدمة:</b> {order.service}</p>
+            <p><b>الهاتف:</b> {order.phone}</p>
+            <p><b>الحالة:</b> {order.status}</p>
+            <a href={buildWhatsAppLink(order.phone, `طلبك ${order.service}`)} target="_blank" className="text-green-600 underline">فتح واتساب</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
