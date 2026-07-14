@@ -1,1 +1,24 @@
-'use client'; import {useSession} from 'next-auth/react'; import {useRouter} from 'next/navigation'; import {useEffect} from 'react'; import DashboardShell from '../../components/DashboardShell'; export default function L({children}){ const {data:s,status}=useSession(); const r=useRouter(); useEffect(()=>{if(status==='unauthenticated') r.push('/auth')},[status,r]); if(status==='loading') return<div className='p-10 text-center'>جاري...</div>; if(!s) return null; const sidebar=[{label:'الرئيسية',href:'/customer',icon:'🏠'},{label:'طلباتي',href:'/customer#orders',icon:'🧾'},{label:'اشتراكي',href:'/customer#sub',icon:'💎'},{label:'الضمان',href:'/customer#warranty',icon:'🛡️'}]; return <DashboardShell title={`أهلا ${s.user.name||'عميلنا'}`} subtitle='لوحة تحكم مطمئنة' sidebar={sidebar}>{children}</DashboardShell>}
+"use client";
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import DashboardShell from '../../components/DashboardShell';
+
+export default function CustomerLayout({ children }) {
+  const sessionResult = useSession();
+  const session = sessionResult ? sessionResult.data : null;
+  const status = sessionResult ? sessionResult.status : "loading";
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  if (status === "loading") {
+    return <div className="p-6 text-center">جاري التحميل...</div>;
+  }
+
+  return <DashboardShell>{children}</DashboardShell>;
+}
