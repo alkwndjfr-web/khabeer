@@ -1,1 +1,24 @@
-'use client'; import {useSession} from 'next-auth/react'; import {useRouter} from 'next/navigation'; import {useEffect} from 'react'; import DashboardShell from '../../components/DashboardShell'; export default function L({children}){ const {data:s,status}=useSession(); const r=useRouter(); useEffect(()=>{if(status==='unauthenticated') r.push('/auth')},[status,r]); if(status==='loading') return<div className='p-10 text-center'>جاري...</div>; if(!s) return null; const sidebar=[{label:'مهامي اليوم',href:'/tech',icon:'🧰'},{label:'الأرباح',href:'/tech#earn',icon:'💰'}]; return<DashboardShell title={`مرحبا ${s.user.name}`} subtitle='مهامك اليومية' sidebar={sidebar}>{children}</DashboardShell>}
+"use client";
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import DashboardShell from '../../components/DashboardShell';
+
+export default function TechLayout({ children }) {
+  const sessionResult = useSession();
+  const session = sessionResult ? sessionResult.data : null;
+  const status = sessionResult ? sessionResult.status : "loading";
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  if (status === "loading") {
+    return <div className="p-6 text-center">جاري التحميل...</div>;
+  }
+
+  return <DashboardShell>{children}</DashboardShell>;
+}
